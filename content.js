@@ -25,7 +25,7 @@ function processChats() {
   }
   console.log("Chat list container found.");
 
-  // Create a new container
+  // Create a new container for pinned conversations
   const newContainer = document.createElement("div");
   newContainer.style.padding = "20px";
   newContainer.style.backgroundColor = "#ffffff";
@@ -100,11 +100,31 @@ function processChats() {
               pinButton.style.backgroundColor = "#dc3545"; // Change color to indicate unpin
               localStorage.setItem(chatHref, "pinned"); // Store pin status
               console.log(`Pinned chat: ${chatHref}`);
+
+              // Move the chat link to the pinned container
+              const clonedLink = link.cloneNode(true);
+              clonedLink.querySelector("button").remove(); // Remove the button from the cloned link
+
+              // Add click event to simulate chat selection
+              clonedLink.addEventListener("click", (event) => {
+                event.preventDefault(); // Prevent default link behavior
+                simulateChatSelection(link); // Simulate the chat selection
+              });
+
+              newContainer.appendChild(clonedLink);
             } else {
               pinButton.textContent = "Pin";
               pinButton.style.backgroundColor = "#007bff"; // Change color back to pin
               localStorage.removeItem(chatHref); // Remove pin status
               console.log(`Unpinned chat: ${chatHref}`);
+
+              // Remove the chat link from the pinned container
+              const pinnedLink = newContainer.querySelector(
+                `a[href="${chatHref}"]`
+              );
+              if (pinnedLink) {
+                newContainer.removeChild(pinnedLink);
+              }
             }
           });
 
