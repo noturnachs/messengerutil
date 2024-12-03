@@ -70,7 +70,7 @@ function processChats() {
     console.log("MutationObserver triggered");
     if (window.location.hostname === "www.messenger.com") {
       const chatLinks = document.querySelectorAll(
-        'a[role="link"][href^="/t/"], a[role="link"][href^="/e2ee/t/"]'
+        'a[role="link"][href^="/t/"]:not([aria-current="page"][aria-label="Chats"]), a[role="link"][href^="/e2ee/t/"]:not([aria-current="page"][aria-label="Chats"])'
       );
       console.log("Found chat links:", chatLinks.length);
 
@@ -83,12 +83,14 @@ function processChats() {
 
           // Add Pin/Unpin button
           const pinButton = document.createElement("button");
-          pinButton.textContent = "Pin";
+          pinButton.textContent =
+            localStorage.getItem(chatHref) === "pinned" ? "Unpin" : "Pin";
           pinButton.style.marginLeft = "10px";
           pinButton.style.padding = "5px 10px";
           pinButton.style.border = "none";
           pinButton.style.borderRadius = "4px";
-          pinButton.style.backgroundColor = "#007bff";
+          pinButton.style.backgroundColor =
+            pinButton.textContent === "Pin" ? "#007bff" : "#dc3545";
           pinButton.style.color = "#fff";
           pinButton.style.cursor = "pointer";
 
@@ -96,12 +98,12 @@ function processChats() {
             if (pinButton.textContent === "Pin") {
               pinButton.textContent = "Unpin";
               pinButton.style.backgroundColor = "#dc3545"; // Change color to indicate unpin
-              // Add logic to pin the chat
+              localStorage.setItem(chatHref, "pinned"); // Store pin status
               console.log(`Pinned chat: ${chatHref}`);
             } else {
               pinButton.textContent = "Pin";
               pinButton.style.backgroundColor = "#007bff"; // Change color back to pin
-              // Add logic to unpin the chat
+              localStorage.removeItem(chatHref); // Remove pin status
               console.log(`Unpinned chat: ${chatHref}`);
             }
           });
