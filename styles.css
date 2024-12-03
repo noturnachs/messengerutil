@@ -1,0 +1,26 @@
+.pin-menu-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.pin-menu-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.pin-menu-text {
+  font-size: 14px;
+}
+
+.pin-menu-separator {
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin: 4px 0;
+}
+
+.pin-indicator {
+  font-size: 12px;
+  color: #0084ff;
+  margin-left: 8px;
+  font-weight: normal;
+}
