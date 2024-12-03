@@ -28,7 +28,7 @@ function processChats() {
   // Create a new container for pinned conversations
   const newContainer = document.createElement("div");
   newContainer.style.padding = "20px";
-  newContainer.style.backgroundColor = "#ffffff";
+  newContainer.style.backgroundColor = "#111827";
   newContainer.style.borderRadius = "8px";
   newContainer.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
   newContainer.style.marginBottom = "10px";
@@ -50,6 +50,34 @@ function processChats() {
   // Insert the new container above the chat list
   const parentElement = chatListContainer.parentNode;
   parentElement.parentNode.insertBefore(newContainer, parentElement);
+
+  // Load pinned chats from localStorage on page load
+  const loadPinnedChats = () => {
+    for (let i = 0; i < localStorage.length; i++) {
+      const chatHref = localStorage.key(i);
+      if (localStorage.getItem(chatHref) === "pinned") {
+        const link = document.querySelector(`a[href="${chatHref}"]`);
+        if (link) {
+          const clonedLink = link.cloneNode(true);
+          const button = clonedLink.querySelector("button");
+          if (button) {
+            button.remove(); // Remove the button from the cloned link
+          }
+
+          // Add click event to simulate chat selection
+          clonedLink.addEventListener("click", (event) => {
+            event.preventDefault(); // Prevent default link behavior
+            simulateChatSelection(link); // Simulate the chat selection
+          });
+
+          newContainer.appendChild(clonedLink);
+        }
+      }
+    }
+  };
+
+  // Load pinned chats initially
+  loadPinnedChats();
 
   // Helper function to simulate chat selection
   const simulateChatSelection = (chatElement) => {
@@ -103,7 +131,10 @@ function processChats() {
 
               // Move the chat link to the pinned container
               const clonedLink = link.cloneNode(true);
-              clonedLink.querySelector("button").remove(); // Remove the button from the cloned link
+              const button = clonedLink.querySelector("button");
+              if (button) {
+                button.remove(); // Remove the button from the cloned link
+              }
 
               // Add click event to simulate chat selection
               clonedLink.addEventListener("click", (event) => {
