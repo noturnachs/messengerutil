@@ -28,7 +28,7 @@ function processChats() {
   // Create a new container for pinned conversations
   const newContainer = document.createElement("div");
   newContainer.style.padding = "20px";
-  newContainer.style.backgroundColor = "#1a1a1a";
+  newContainer.style.backgroundColor = "#ffffff";
   newContainer.style.borderRadius = "8px";
   newContainer.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
   newContainer.style.marginBottom = "10px";
@@ -51,31 +51,44 @@ function processChats() {
   const parentElement = chatListContainer.parentNode;
   parentElement.parentNode.insertBefore(newContainer, parentElement);
 
+  // Function to style a chat link
+  const styleChatLink = (link) => {
+    link.style.display = "flex";
+    link.style.alignItems = "center";
+    link.style.justifyContent = "space-between";
+    link.style.backgroundColor = "#1e1e2f"; // Dark background color
+    link.style.color = "#fff"; // White text color
+    link.style.padding = "10px";
+    link.style.borderRadius = "8px";
+    link.style.marginBottom = "5px";
+    link.style.width = "auto"; // Ensure it doesn't collapse
+    link.style.textDecoration = "none"; // Remove underline
+  };
+
   // Load pinned chats from localStorage on page load
   const loadPinnedChats = () => {
-    for (let i = 0; i < localStorage.length; i++) {
-      const chatHref = localStorage.key(i);
-      if (localStorage.getItem(chatHref) === "pinned") {
-        const link = document.querySelector(`a[href="${chatHref}"]`);
-        if (link) {
-          const clonedLink = link.cloneNode(true);
-          const button = clonedLink.querySelector("button");
-          if (button) {
-            button.remove(); // Remove the button from the cloned link
-          }
-
-          clonedLink.style.backgroundColor = "#1e1e2f"; // Dark background color
-
-          // Add click event to simulate chat selection
-          clonedLink.addEventListener("click", (event) => {
-            event.preventDefault(); // Prevent default link behavior
-            simulateChatSelection(link); // Simulate the chat selection
-          });
-
-          newContainer.appendChild(clonedLink);
+    const pinnedChats = JSON.parse(localStorage.getItem("pinnedChats") || "[]");
+    pinnedChats.forEach((chatHref) => {
+      const link = document.querySelector(`a[href="${chatHref}"]`);
+      if (link) {
+        const clonedLink = link.cloneNode(true);
+        const button = clonedLink.querySelector("button");
+        if (button) {
+          button.remove(); // Remove the button from the cloned link
         }
+
+        // Style the cloned link
+        styleChatLink(clonedLink);
+
+        // Add click event to simulate chat selection
+        clonedLink.addEventListener("click", (event) => {
+          event.preventDefault(); // Prevent default link behavior
+          simulateChatSelection(link); // Simulate the chat selection
+        });
+
+        newContainer.appendChild(clonedLink);
       }
-    }
+    });
   };
 
   // Load pinned chats initially
@@ -113,8 +126,12 @@ function processChats() {
 
           // Add Pin/Unpin button
           const pinButton = document.createElement("button");
-          pinButton.textContent =
-            localStorage.getItem(chatHref) === "pinned" ? "Unpin" : "Pin";
+          const pinnedChats = JSON.parse(
+            localStorage.getItem("pinnedChats") || "[]"
+          );
+          pinButton.textContent = pinnedChats.includes(chatHref)
+            ? "Unpin"
+            : "Pin";
           pinButton.style.marginLeft = "10px";
           pinButton.style.padding = "5px 10px";
           pinButton.style.border = "none";
@@ -125,10 +142,14 @@ function processChats() {
           pinButton.style.cursor = "pointer";
 
           pinButton.addEventListener("click", () => {
+            const pinnedChats = JSON.parse(
+              localStorage.getItem("pinnedChats") || "[]"
+            );
             if (pinButton.textContent === "Pin") {
               pinButton.textContent = "Unpin";
               pinButton.style.backgroundColor = "#dc3545"; // Change color to indicate unpin
-              localStorage.setItem(chatHref, "pinned"); // Store pin status
+              pinnedChats.push(chatHref);
+              localStorage.setItem("pinnedChats", JSON.stringify(pinnedChats));
               console.log(`Pinned chat: ${chatHref}`);
 
               // Move the chat link to the pinned container
@@ -139,14 +160,7 @@ function processChats() {
               }
 
               // Style the cloned link
-              clonedLink.style.display = "flex";
-              clonedLink.style.alignItems = "center";
-              clonedLink.style.justifyContent = "space-between";
-              clonedLink.style.backgroundColor = "#1e1e2f"; // Dark background color
-              clonedLink.style.color = "#fff"; // White text color
-              clonedLink.style.padding = "10px";
-              clonedLink.style.borderRadius = "8px";
-              clonedLink.style.marginBottom = "5px";
+              styleChatLink(clonedLink);
 
               // Add click event to simulate chat selection
               clonedLink.addEventListener("click", (event) => {
@@ -158,7 +172,11 @@ function processChats() {
             } else {
               pinButton.textContent = "Pin";
               pinButton.style.backgroundColor = "#007bff"; // Change color back to pin
-              localStorage.removeItem(chatHref); // Remove pin status
+              const index = pinnedChats.indexOf(chatHref);
+              if (index > -1) {
+                pinnedChats.splice(index, 1);
+              }
+              localStorage.setItem("pinnedChats", JSON.stringify(pinnedChats));
               console.log(`Unpinned chat: ${chatHref}`);
 
               // Remove the chat link from the pinned container
