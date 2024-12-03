@@ -25,6 +25,16 @@ function processChats() {
   }
   console.log("Chat list container found.");
 
+  // Create a new container
+  const newContainer = document.createElement("div");
+  newContainer.style.padding = "10px";
+  newContainer.style.backgroundColor = "#f0f0f0";
+  newContainer.textContent = "This is a new container above the chat list";
+
+  // Insert the new container above the chat list
+  const parentElement = chatListContainer.parentNode;
+  parentElement.parentNode.insertBefore(newContainer, parentElement);
+
   // Helper function to simulate chat selection
   const simulateChatSelection = (chatElement) => {
     console.log(`Simulating selection of chat: ${chatElement.href}`);
