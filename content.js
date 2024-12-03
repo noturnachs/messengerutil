@@ -184,32 +184,6 @@ function processChats() {
     return pinButton;
   };
 
-  const updateChatButtons = () => {
-    chrome.storage.local.get("pinnedChats", (result) => {
-      const pinnedChats = result.pinnedChats || [];
-      const chatLinks = document.querySelectorAll(
-        'a[role="link"][href^="/t/"]:not([aria-current="page"][aria-label="Chats"]), a[role="link"][href^="/e2ee/t/"]:not([aria-current="page"][aria-label="Chats"])'
-      );
-
-      chatLinks.forEach((link) => {
-        const chatHref = link.getAttribute("href");
-        const isPinned = pinnedChats.includes(chatHref);
-        let pinButton = link.querySelector("button");
-
-        if (!pinButton) {
-          pinButton = createPinButton(chatHref, isPinned);
-          link.appendChild(pinButton);
-        } else {
-          pinButton.textContent = isPinned ? "Unpin" : "Pin";
-          pinButton.style.backgroundColor = isPinned ? "#dc3545" : "#007bff";
-        }
-      });
-    });
-  };
-
-  // Call updateChatButtons on page load
-  updateChatButtons();
-
   // Load pinned chats from chrome.storage on page load
   const loadPinnedChats = () => {
     chrome.storage.local.get("pinnedChats", (result) => {
@@ -272,7 +246,28 @@ function processChats() {
   const observer = new MutationObserver(() => {
     console.log("MutationObserver triggered");
     if (window.location.hostname === "www.messenger.com") {
-      updateChatButtons();
+      const chatLinks = document.querySelectorAll(
+        'a[role="link"][href^="/t/"]:not([aria-current="page"][aria-label="Chats"]), a[role="link"][href^="/e2ee/t/"]:not([aria-current="page"][aria-label="Chats"])'
+      );
+
+      chatLinks.forEach((link) => {
+        const chatHref = link.getAttribute("href");
+        if (chatHref && !processedChats.has(chatHref)) {
+          // Check if href is not blank
+          processedChats.add(chatHref);
+          chatLinksArray.push(link);
+
+          // Add Pin/Unpin button
+          const pinnedChats = JSON.parse(
+            localStorage.getItem("pinnedChats") || "[]"
+          );
+          const pinButton = createPinButton(
+            chatHref,
+            pinnedChats.includes(chatHref)
+          );
+          link.appendChild(pinButton);
+        }
+      });
     }
   });
 
