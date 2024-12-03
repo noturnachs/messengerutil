@@ -91,7 +91,7 @@ function processChats() {
   };
 
   // Modify the pin/unpin logic to use chrome.storage
-  const createPinButton = (chatHref, isPinned) => {
+  const createPinButton = (chatHref, isPinned, link) => {
     const pinButton = document.createElement("button");
     pinButton.textContent = isPinned ? "Unpin" : "Pin";
     pinButton.style.marginLeft = "10px";
@@ -105,36 +105,43 @@ function processChats() {
     pinButton.addEventListener("click", () => {
       chrome.storage.local.get("pinnedChats", (result) => {
         const pinnedChats = result.pinnedChats || [];
+        const targetSpan = link.querySelector(
+          'span[style*="--lineHeight: 20px;"] > span'
+        );
+        let chatName = "Unknown";
+
+        if (targetSpan) {
+          chatName = targetSpan.textContent
+            .split("<")[0]
+            .trim()
+            .replace(/,/g, "");
+        }
+
+        console.log(`Chat name: ${chatName}, Chat href: ${chatHref}`); // Log the chat name and href
+
         if (pinButton.textContent === "Pin") {
           pinButton.textContent = "Unpin";
           pinButton.style.backgroundColor = "#dc3545";
-          pinnedChats.push(chatHref);
+          pinnedChats.push({ href: chatHref, name: chatName });
           chrome.storage.local.set({ pinnedChats }, () => {
-            console.log(`Pinned chat: ${chatHref}`);
-            console.log("Updated pinned chats:", pinnedChats);
+            console.log(`Pinned chat: ${chatName}`);
+            console.log("Updated pinned chats:", JSON.stringify(pinnedChats));
+
+            // Send message to popup
+            // chrome.runtime.sendMessage({ action: "updatePopup", pinnedChats });
 
             const link = document.querySelector(`a[href="${chatHref}"]`);
             if (link) {
               const clonedLink = link.cloneNode(true);
-              console.log(`clonedLink: ${clonedLink}`);
               const button = clonedLink.querySelector("button");
               if (button) {
-                button.remove(); // Remove the pin button from the cloned link
+                button.remove();
               }
 
               clonedLink.removeAttribute("aria-current");
-              clonedLink.style.display = "flex";
-              clonedLink.style.alignItems = "center";
-              clonedLink.style.justifyContent = "space-between";
-              clonedLink.style.backgroundColor = "#262626";
-              clonedLink.style.color = "#fff";
-              clonedLink.style.padding = "10px";
-              clonedLink.style.borderRadius = "8px";
-              clonedLink.style.marginBottom = "5px";
-              clonedLink.style.width = "auto";
-              clonedLink.style.textDecoration = "none";
+              styleChatLink(clonedLink);
 
-              const unpinButton = createPinButton(chatHref, true);
+              const unpinButton = createPinButton(chatHref, true, link);
               clonedLink.appendChild(unpinButton);
 
               clonedLink.addEventListener("click", (event) => {
@@ -146,16 +153,18 @@ function processChats() {
             }
           });
         } else {
-          // Unpin logic
           pinButton.textContent = "Pin";
           pinButton.style.backgroundColor = "#007bff";
-          const index = pinnedChats.indexOf(chatHref);
+          const index = pinnedChats.findIndex((chat) => chat.href === chatHref);
           if (index > -1) {
             pinnedChats.splice(index, 1);
           }
           chrome.storage.local.set({ pinnedChats }, () => {
-            console.log(`Unpinned chat: ${chatHref}`);
+            console.log(`Unpinned chat: ${chatName}`);
             console.log("Updated pinned chats:", pinnedChats);
+
+            // Send message to popup
+            chrome.runtime.sendMessage({ action: "updatePopup", pinnedChats });
 
             const pinnedLink = newContainer.querySelector(
               `a[href="${chatHref}"]`
@@ -188,9 +197,10 @@ function processChats() {
   const loadPinnedChats = () => {
     chrome.storage.local.get("pinnedChats", (result) => {
       const pinnedChats = result.pinnedChats || [];
-      console.log("Loading pinned chats:", pinnedChats);
+      console.log("Loading pinned chats:", JSON.stringify(pinnedChats));
 
-      pinnedChats.forEach((chatHref) => {
+      pinnedChats.forEach((chat) => {
+        const chatHref = chat.href; // Access the href property
         if (chatHref) {
           // Check if href is not blank
           const link = document.querySelector(`a[href="${chatHref}"]`);
@@ -243,48 +253,51 @@ function processChats() {
     });
   };
 
-  const observer = new MutationObserver(() => {
-    console.log("MutationObserver triggered");
-    if (window.location.hostname === "www.messenger.com") {
+  const updateChatButtons = () => {
+    chrome.storage.local.get("pinnedChats", (result) => {
+      const pinnedChats = result.pinnedChats || [];
+
+      // Selector for chat links
       const chatLinks = document.querySelectorAll(
-        'a[role="link"][href^="/t/"]:not([aria-current="page"][aria-label="Chats"]), a[role="link"][href^="/e2ee/t/"]:not([aria-current="page"][aria-label="Chats"])'
+        'a[role="link"][href^="/t/"]:not([aria-current="page"]), a[role="link"][href^="/e2ee/t/"]:not([aria-current="page"])'
       );
+
+      console.log("chatLinks", chatLinks);
 
       chatLinks.forEach((link) => {
         const chatHref = link.getAttribute("href");
-        if (chatHref && !processedChats.has(chatHref)) {
-          // Check if href is not blank
-          processedChats.add(chatHref);
-          chatLinksArray.push(link);
 
-          // Add Pin/Unpin button
-          const pinnedChats = JSON.parse(
-            localStorage.getItem("pinnedChats") || "[]"
-          );
-          const pinButton = createPinButton(
-            chatHref,
-            pinnedChats.includes(chatHref)
-          );
+        // Selector for chat names
+        const targetSpan = link.querySelector(
+          'span[style*="--lineHeight: 20px;"] > span'
+        );
+        let chatName = "Unknown";
+
+        if (targetSpan) {
+          chatName = targetSpan.textContent
+            .split("<")[0]
+            .trim()
+            .replace(/,/g, "");
+        }
+
+        console.log(`Chat name: ${chatName}, Chat href: ${chatHref}`);
+
+        const isPinned = pinnedChats.some((chat) => chat.href === chatHref);
+        let pinButton = link.querySelector("button");
+
+        if (!pinButton) {
+          pinButton = createPinButton(chatHref, isPinned, link);
           link.appendChild(pinButton);
+        } else {
+          pinButton.textContent = isPinned ? "Unpin" : "Pin";
+          pinButton.style.backgroundColor = isPinned ? "#dc3545" : "#007bff";
         }
       });
-    }
-  });
+    });
+  };
 
-  observer.observe(chatListContainer, {
-    childList: true,
-    subtree: true,
-  });
-  console.log("Observer started");
-
-  // Click on a random chat every 5 seconds
-  // setInterval(() => {
-  //   if (chatLinksArray.length > 0) {
-  //     const randomIndex = Math.floor(Math.random() * chatLinksArray.length);
-  //     const randomChat = chatLinksArray[randomIndex];
-  //     simulateChatSelection(randomChat);
-  //   }
-  // }, 5000); // 5000 milliseconds = 5 seconds
+  // Call updateChatButtons on page load
+  updateChatButtons();
 
   // Add CSS for WebKit browsers
   const style = document.createElement("style");
