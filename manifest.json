@@ -6,7 +6,13 @@
   "permissions": ["storage", "activeTab", "background", "alarms"],
   "host_permissions": ["https://www.messenger.com/*"],
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": "messenger.png"
+  },
+  "icons": {
+    "16": "messenger.png",
+    "48": "messenger.png",
+    "128": "messenger.png"
   },
   "content_scripts": [
     {
