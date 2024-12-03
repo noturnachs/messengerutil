@@ -28,7 +28,7 @@ function processChats() {
   // Create a new container for pinned conversations
   const newContainer = document.createElement("div");
   newContainer.style.padding = "20px";
-  newContainer.style.backgroundColor = "#111827";
+  newContainer.style.backgroundColor = "#1a1a1a";
   newContainer.style.borderRadius = "8px";
   newContainer.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
   newContainer.style.marginBottom = "10px";
@@ -63,6 +63,8 @@ function processChats() {
           if (button) {
             button.remove(); // Remove the button from the cloned link
           }
+
+          clonedLink.style.backgroundColor = "#1e1e2f"; // Dark background color
 
           // Add click event to simulate chat selection
           clonedLink.addEventListener("click", (event) => {
@@ -135,6 +137,16 @@ function processChats() {
               if (button) {
                 button.remove(); // Remove the button from the cloned link
               }
+
+              // Style the cloned link
+              clonedLink.style.display = "flex";
+              clonedLink.style.alignItems = "center";
+              clonedLink.style.justifyContent = "space-between";
+              clonedLink.style.backgroundColor = "#1e1e2f"; // Dark background color
+              clonedLink.style.color = "#fff"; // White text color
+              clonedLink.style.padding = "10px";
+              clonedLink.style.borderRadius = "8px";
+              clonedLink.style.marginBottom = "5px";
 
               // Add click event to simulate chat selection
               clonedLink.addEventListener("click", (event) => {
