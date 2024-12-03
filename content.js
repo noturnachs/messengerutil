@@ -27,9 +27,25 @@ function processChats() {
 
   // Create a new container
   const newContainer = document.createElement("div");
-  newContainer.style.padding = "10px";
-  newContainer.style.backgroundColor = "#f0f0f0";
-  newContainer.textContent = "This is a new container above the chat list";
+  newContainer.style.padding = "20px";
+  newContainer.style.backgroundColor = "#ffffff";
+  newContainer.style.borderRadius = "8px";
+  newContainer.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
+  newContainer.style.marginBottom = "10px";
+  newContainer.style.textAlign = "center";
+  newContainer.style.fontFamily =
+    "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+  newContainer.style.fontSize = "16px";
+  newContainer.style.color = "#333";
+
+  // Add a title to the container
+  const title = document.createElement("h2");
+  title.textContent = "Pinned Conversations";
+  title.style.margin = "0 0 10px 0"; // Add some margin below the title
+  title.style.fontSize = "18px"; // Slightly larger font for the title
+  title.style.color = "#555"; // A different color for the title
+
+  newContainer.appendChild(title);
 
   // Insert the new container above the chat list
   const parentElement = chatListContainer.parentNode;
